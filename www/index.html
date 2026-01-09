@@ -2,159 +2,193 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Solo System - Awakening</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solo Leveling System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Tela de Awakening -->
-    <div id="awakening-screen" class="screen">
-        <div class="awakening-container">
-            <h1 class="awakening-title">AWAKENING</h1>
-            <div class="awakening-line"></div>
-            <p class="awakening-subtitle">SISTEMA DE IDENTIFICAÇÃO</p>
-            <div class="name-input-container">
-                <input type="text" id="player-name-input" placeholder="DIGITE SEU NOME" maxlength="20" class="name-input">
+    <!-- Awakening & Intro -->
+    <div id="awakening-overlay" class="overlay">
+        <div class="awakening-text-container">
+            <h1 class="rise-text">ERGA-SE</h1>
+            <p class="despertar-text">ESSE É SEU DESPERTAR</p>
+        </div>
+        
+        <div class="system-loading hidden">
+            <div class="loading-bar-container">
+                <div class="loading-bar"></div>
             </div>
-            <button id="awakening-btn" class="glow-button">CONFIRMAR</button>
+            <div class="loading-percentage">0%</div>
+            <p class="loading-status">SISTEMA RECEBENDO INFORMAÇÃO...</p>
+        </div>
+
+        <div class="char-creation hidden">
+            <div class="creation-container">
+                <h2 class="title-glitch">CRIAÇÃO DE PERSONAGEM</h2>
+                
+                <div class="input-group">
+                    <label>NOME DO JOGADOR</label>
+                    <input type="text" id="player-name-input" placeholder="SEU NOME" maxlength="15">
+                </div>
+
+                <div class="selection-grid">
+                    <div class="select-group">
+                        <label>SEXO</label>
+                        <select id="player-gender">
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+                    <div class="select-group">
+                        <label>RAÇA</label>
+                        <select id="player-race" onchange="updateRaceDescription()">
+                            <option value="Humano">Humano</option>
+                            <option value="Elfo">Elfo</option>
+                            <option value="Orc">Orc</option>
+                            <option value="Morto-Vivo">Morto-Vivo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="race-description" class="race-info-box">
+                    <strong>Humano:</strong> Equilibrado e versátil. Ganho de XP aumentado em 10%.
+                </div>
+
+                <div class="select-group">
+                    <label>CLASSE</label>
+                    <select id="player-class">
+                        <option value="Guerreiro">Guerreiro</option>
+                        <option value="Mago">Mago</option>
+                        <option value="Assassino">Assassino</option>
+                        <option value="Necromante">Necromante</option>
+                        <option value="Tanque">Tanque</option>
+                    </select>
+                </div>
+
+                <button id="confirm-creation-btn" class="glow-btn">INICIAR SISTEMA</button>
+            </div>
         </div>
     </div>
 
-    <!-- Dashboard Principal -->
-    <div id="dashboard" class="screen hidden">
-        <div id="system-overlay">
-            <!-- Header -->
-            <header class="dashboard-header">
-                <div class="status-label">STATUS</div>
-                <div class="player-info">
-                    <div class="player-name" id="player-name-display">USUÁRIO</div>
-                    <div class="rank-level">
-                        <span class="rank-label">RANK: <span id="rank-display">E-RANK</span></span>
-                        <span class="level-label">NÍVEL: <span id="level-display">1</span></span>
-                    </div>
+    <!-- Main System Dashboard -->
+    <div id="main-system" class="hidden">
+        <header class="system-header">
+            <div class="profile-preview" onclick="document.getElementById('profile-upload').click()">
+                <div class="avatar-container">
+                    <img id="avatar-img" src="https://api.dicebear.com/7.x/avataaars/svg?seed=monarch" alt="Avatar">
                 </div>
-            </header>
+                <input type="file" id="profile-upload" hidden accept="image/*">
+            </div>
 
-            <!-- Barra de XP -->
-            <div class="xp-section">
-                <div class="xp-label">EXPERIÊNCIA</div>
-                <div class="exp-bar-container">
-                    <div id="exp-bar" class="exp-bar"></div>
-                    <div class="exp-text"><span id="current-xp">0</span> / <span id="max-xp">100</span> XP</div>
+            <div class="player-summary">
+                <div class="name-rank">
+                    <h2 id="display-name">JOGADOR</h2>
+                    <span id="player-rank" class="rank-badge">RANK E</span>
+                </div>
+                <div class="xp-container">
+                    <div class="xp-bar-bg">
+                        <div id="xp-fill" class="xp-fill"></div>
+                    </div>
+                    <span class="xp-text">EXP: <span id="current-xp">0</span> / <span id="next-level-xp">100</span></span>
                 </div>
             </div>
 
-            <!-- Seção de Atributos -->
-            <div class="attributes-section">
-                <div class="section-title">ATRIBUTOS</div>
-                <div class="points-available" id="points-available-container">
-                    PONTOS DISPONÍVEIS: <span id="available-points">0</span>
+            <div class="menu-btn" id="menu-toggle">
+                <span></span><span></span><span></span>
+            </div>
+        </header>
+
+        <!-- Side Menu -->
+        <nav id="side-menu" class="side-menu">
+            <div class="menu-header">MENU DO SISTEMA</div>
+            <ul>
+                <li data-screen="dashboard" class="active">DASHBOARD</li>
+                <li data-screen="status">ATRIBUTOS</li>
+                <li data-screen="quests">MISSOES</li>
+                <li data-screen="inventory">INVENTARIO</li>
+                <li data-screen="leaderboard">PLACAR GLOBAL</li>
+                <li data-screen="settings">CONFIGURACOES</li>
+            </ul>
+        </nav>
+
+        <main class="content-area">
+            <!-- Dashboard -->
+            <section id="screen-dashboard" class="system-screen active">
+                <div class="radar-box">
+                    <canvas id="attribute-radar"></canvas>
                 </div>
-                <div class="attributes-grid">
-                    <div class="attribute-item">
-                        <span class="attr-label">STR</span>
-                        <span class="attr-value" id="attr-str">10</span>
-                        <button class="attr-btn hidden" id="btn-str" onclick="increaseAttribute('STR')">+</button>
-                    </div>
-                    <div class="attribute-item">
-                        <span class="attr-label">VIT</span>
-                        <span class="attr-value" id="attr-vit">10</span>
-                        <button class="attr-btn hidden" id="btn-vit" onclick="increaseAttribute('VIT')">+</button>
-                    </div>
-                    <div class="attribute-item">
-                        <span class="attr-label">AGI</span>
-                        <span class="attr-value" id="attr-agi">10</span>
-                        <button class="attr-btn hidden" id="btn-agi" onclick="increaseAttribute('AGI')">+</button>
-                    </div>
-                    <div class="attribute-item">
-                        <span class="attr-label">INT</span>
-                        <span class="attr-value" id="attr-int">10</span>
-                        <button class="attr-btn hidden" id="btn-int" onclick="increaseAttribute('INT')">+</button>
-                    </div>
-                    <div class="attribute-item">
-                        <span class="attr-label">SEN</span>
-                        <span class="attr-value" id="attr-sen">10</span>
-                        <button class="attr-btn hidden" id="btn-sen" onclick="increaseAttribute('SEN')">+</button>
-                    </div>
+                <div class="status-summary-card">
+                    <div class="summary-item"><label>SEXO:</label> <span id="display-gender">-</span></div>
+                    <div class="summary-item"><label>RAÇA:</label> <span id="display-race">-</span></div>
+                    <div class="summary-item"><label>CLASSE:</label> <span id="display-class">-</span></div>
+                    <div class="summary-item"><label>NÍVEL:</label> <span id="display-level">1</span></div>
+                </div>
+                <div class="ability-card">
+                    <label>HABILIDADE ÚNICA:</label>
+                    <p id="display-ability">Nenhuma</p>
+                </div>
+            </section>
+
+            <!-- Status -->
+            <section id="screen-status" class="system-screen hidden">
+                <div class="points-header">
+                    <h3>PONTOS DISPONÍVEIS: <span id="stat-points">0</span></h3>
+                </div>
+                <div class="stats-grid" id="stats-container">
+                    <!-- Stats rows populated by JS -->
+                </div>
+            </section>
+
+            <!-- Quests -->
+            <section id="screen-quests" class="system-screen hidden">
+                <div class="quest-tabs">
+                    <button class="tab-btn active" data-tab="daily">DIÁRIAS</button>
+                    <button class="tab-btn" data-tab="dungeon">DUNGEONS</button>
+                    <button class="tab-btn" data-tab="side">SECUNDÁRIAS</button>
                 </div>
                 
-                <!-- Gráfico de Radar -->
-                <div class="radar-chart-container">
-                    <canvas id="radar-chart"></canvas>
+                <div id="daily-content" class="tab-content active">
+                    <div id="daily-quests-list"></div>
+                    <button id="claim-reward-btn" class="hidden glow-btn" onclick="claimReward()">CLAIM REWARD</button>
                 </div>
-            </div>
 
-            <!-- Sistema de Missões Diárias -->
-            <div class="quest-section">
-                <div class="section-title">DAILY QUEST: PREPARATION FOR GREATNESS</div>
-                <div class="quests-list">
-                    <div class="quest-item">
-                        <div class="quest-info">
-                            <span class="quest-name">FLEXÕES</span>
-                            <span class="quest-progress" id="quest-pushups">0 / 100</span>
-                        </div>
-                        <div class="quest-controls">
-                            <button class="quest-btn" onclick="updateQuest('pushups', 10)">+10</button>
-                            <div class="quest-bar-container">
-                                <div class="quest-bar" id="quest-bar-pushups"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quest-item">
-                        <div class="quest-info">
-                            <span class="quest-name">ABDOMINAIS</span>
-                            <span class="quest-progress" id="quest-situps">0 / 100</span>
-                        </div>
-                        <div class="quest-controls">
-                            <button class="quest-btn" onclick="updateQuest('situps', 10)">+10</button>
-                            <div class="quest-bar-container">
-                                <div class="quest-bar" id="quest-bar-situps"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quest-item">
-                        <div class="quest-info">
-                            <span class="quest-name">AGACHAMENTOS</span>
-                            <span class="quest-progress" id="quest-squats">0 / 100</span>
-                        </div>
-                        <div class="quest-controls">
-                            <button class="quest-btn" onclick="updateQuest('squats', 10)">+10</button>
-                            <div class="quest-bar-container">
-                                <div class="quest-bar" id="quest-bar-squats"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="quest-item">
-                        <div class="quest-info">
-                            <span class="quest-name">CORRIDA</span>
-                            <span class="quest-progress" id="quest-running">0.0 / 10.0 km</span>
-                        </div>
-                        <div class="quest-controls">
-                            <button class="quest-btn" onclick="updateQuest('running', 1)">+1km</button>
-                            <div class="quest-bar-container">
-                                <div class="quest-bar" id="quest-bar-running"></div>
-                            </div>
-                        </div>
+                <div id="dungeon-content" class="tab-content hidden">
+                    <div class="quest-item disabled">
+                        <p>DUNGEON RANK D: O DESPERTAR</p>
+                        <span class="lock-tag">BLOQUEADO - NÍVEL 10</span>
                     </div>
                 </div>
 
-                <button id="claim-reward-btn" class="claim-reward-btn hidden" onclick="claimReward()">CLAIM REWARD</button>
+                <div id="side-content" class="tab-content hidden">
+                    <div class="quest-item disabled">
+                        <p>LIMPEZA DA CIDADE</p>
+                        <span class="lock-tag">BLOQUEADO</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Penalty Zone -->
+        <div id="penalty-zone" class="penalty-overlay hidden">
+            <div class="penalty-content">
+                <h1 class="error-text">ERRO</h1>
+                <p>MISSOES NÃO CONCLUÍDAS</p>
+                <div class="line"></div>
+                <p>ZONA DE PUNIÇÃO ATIVADA</p>
+                <button onclick="document.getElementById('penalty-zone').classList.add('hidden')">INICIAR PUNIÇÃO</button>
             </div>
         </div>
     </div>
 
-    <!-- Animação QUEST CLEARED -->
-    <div id="quest-cleared-animation" class="quest-cleared-animation hidden">
-        <div class="quest-cleared-text">QUEST CLEARED</div>
+    <!-- Quest Cleared Animation -->
+    <div id="quest-cleared-animation" class="quest-anim hidden">
+        <div class="quest-text">QUEST CLEARED</div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
